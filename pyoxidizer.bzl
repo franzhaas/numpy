@@ -6,12 +6,20 @@
 # Configuration files consist of functions which define build "targets."
 # This function creates a Python executable and installs it in a destination
 # directory.
+
+def resource_callback(policy, resource):
+    if type(resource) in ("PythonExtensionModule"):
+        resource.add_location = "filesystem-relative:lib"
+    else:
+        resource.add_location = "in-memory"
+
 def make_exe():
     dist = default_python_distribution(flavor = "standalone_dynamic")
     policy = dist.make_python_packaging_policy()
     policy.allow_files = True
     policy.allow_in_memory_shared_library_loading = True
     policy.resources_location = "in-memory"
+    policy.register_resource_callback(resource_callback)
     python_config = dist.make_python_interpreter_config()
     python_config.config_profile = "python"
     exe = dist.to_python_executable(
@@ -31,7 +39,8 @@ def make_exe():
 
     exe.windows_subsystem = "console"
 
-    exe.add_python_resources(exe.pip_install(["./numpy-1.23.0.dev0+299.gf1eccf2d1-cp39-cp39-win_amd64.whl"]))
+
+    exe.add_python_resources(exe.pip_install(["./numpy-1.23.0.dev0+305.ge1566e982-cp39-cp39-win_amd64.whl"]))
 
     return exe
 
