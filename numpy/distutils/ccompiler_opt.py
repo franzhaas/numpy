@@ -15,6 +15,7 @@ import pprint
 import re
 import subprocess
 import textwrap
+import importlib.resources
 
 
 class _Config:
@@ -1050,11 +1051,11 @@ class _CCompiler:
         """
         assert(isinstance(flags, list))
         self.dist_log("testing flags", flags)
-        test_path = os.path.join(self.conf_check_path, "test_flags.c")
-        test = self.dist_test(test_path, flags)
-        if not test:
-            self.dist_log("testing failed", stderr=True)
-        return test
+        with importlib.resources.path("numpy.distutils.checks", "test_flags.c") as test_path:
+            test = self.dist_test(test_path, flags)
+            if not test:
+                self.dist_log("testing failed", stderr=True)
+            return test
 
     def cc_normalize_flags(self, flags):
         """
@@ -1510,17 +1511,15 @@ class _Feature:
         ))
         # Each CPU feature must have C source code contains at
         # least one intrinsic or instruction related to this feature.
-        test_path = os.path.join(
-            self.conf_check_path, "cpu_%s.c" % name.lower()
-        )
-        if not os.path.exists(test_path):
-            self.dist_fatal("feature test file is not exist", test_path)
 
-        test = self.dist_test(
-            test_path, force_flags + self.cc_flags["werror"], macros=macros
-        )
-        if not test:
-            self.dist_log("testing failed", stderr=True)
+        with importlib.resources.path("numpy.distutils.checks", "cpu_%s.c" % name.lower()) as test_path:
+            if not os.path.exists(test_path):
+                self.dist_fatal("feature test file is not exist", test_path)
+                test = self.dist_test(
+                     test_path, force_flags + self.cc_flags["werror"], macros=macros
+                     )
+            if not test:
+                self.dist_log("testing failed", stderr=True)
         return test
 
     @_Cache.me
@@ -1589,17 +1588,14 @@ class _Feature:
         available = []
         not_available = []
         for chk in extra_checks:
-            test_path = os.path.join(
-                self.conf_check_path, "extra_%s.c" % chk.lower()
-            )
-            if not os.path.exists(test_path):
-                self.dist_fatal("extra check file does not exist", test_path)
-
-            is_supported = self.dist_test(test_path, flags + self.cc_flags["werror"])
-            if is_supported:
-                available.append(chk)
-            else:
-                not_available.append(chk)
+            with importlib.resources.path("numpy.distutils.checks", "extra_%s.c" % chk.lower()) as test_path:
+                if not os.path.exists(test_path):
+                    self.dist_fatal("extra check file does not exist", test_path)
+                is_supported = self.dist_test(test_path, flags + self.cc_flags["werror"])
+                if is_supported:
+                    available.append(chk)
+                else:
+                    not_available.append(chk)
 
         if not_available:
             self.dist_log("testing failed for checks", not_available, stderr=True)

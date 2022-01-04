@@ -2,7 +2,7 @@ import re, textwrap, os
 from os import sys, path
 from distutils.errors import DistutilsError
 
-is_standalone = __name__ == '__main__' and __package__ is None
+is_standalone = __name__ == '__main__' and __package__ is None and  bool(globals().get("__file__", False))
 if is_standalone:
     import unittest, contextlib, tempfile, shutil
     sys.path.append(path.abspath(path.join(path.dirname(__file__), "..")))

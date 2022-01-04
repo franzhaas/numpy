@@ -1,7 +1,7 @@
 import unittest
 from os import sys, path
 
-is_standalone = __name__ == '__main__' and __package__ is None
+is_standalone = __name__ == '__main__' and __package__ is None and  bool(globals().get("__file__", False))
 if is_standalone:
     sys.path.append(path.abspath(path.join(path.dirname(__file__), "..")))
     from ccompiler_opt import CCompilerOpt
