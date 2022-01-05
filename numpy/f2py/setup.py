@@ -28,6 +28,7 @@ def configuration(parent_package='', top_path=None):
     config.add_subpackage('tests')
     config.add_data_dir('tests/src')
     config.add_data_files(
+        'src/__init__.py',
         'src/fortranobject.c',
         'src/fortranobject.h')
     config.add_data_files('*.pyi')

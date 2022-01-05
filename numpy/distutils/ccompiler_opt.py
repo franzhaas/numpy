@@ -184,9 +184,6 @@ class _Config:
     conf_noopt = False
     conf_cache_factors = None
     conf_tmp_path = None
-    conf_check_path = os.path.join(
-        os.path.dirname(os.path.realpath(__file__)), "checks"
-    )
     conf_target_groups = {}
     conf_c_prefix = 'NPY_'
     conf_c_prefix_ = 'NPY__'
@@ -561,10 +558,15 @@ class _Config:
             self.conf_tmp_path = tmp
 
         if self.conf_cache_factors is None:
-            self.conf_cache_factors = [
-                os.path.getmtime(__file__),
-                self.conf_nocache
-            ]
+            if globals().get("__file__", False):
+                self.conf_cache_factors = [
+                    os.path.getmtime(__file__),
+                    self.conf_nocache
+                    ]
+            else:
+                self.conf_cache_factors = [
+                    self.conf_nocache
+                    ]
 
 class _Distutils:
     """A helper class that provides a collection of fundamental methods
@@ -1052,7 +1054,7 @@ class _CCompiler:
         assert(isinstance(flags, list))
         self.dist_log("testing flags", flags)
         with importlib.resources.path("numpy.distutils.checks", "test_flags.c") as test_path:
-            test = self.dist_test(test_path, flags)
+            test = self.dist_test(str(test_path), flags)
             if not test:
                 self.dist_log("testing failed", stderr=True)
             return test
@@ -1515,12 +1517,12 @@ class _Feature:
         with importlib.resources.path("numpy.distutils.checks", "cpu_%s.c" % name.lower()) as test_path:
             if not os.path.exists(test_path):
                 self.dist_fatal("feature test file is not exist", test_path)
-                test = self.dist_test(
-                     test_path, force_flags + self.cc_flags["werror"], macros=macros
+            test = self.dist_test(
+                     str(test_path), force_flags + self.cc_flags["werror"], macros=macros
                      )
             if not test:
                 self.dist_log("testing failed", stderr=True)
-        return test
+            return test
 
     @_Cache.me
     def feature_is_supported(self, name, force_flags=None, macros=[]):
@@ -1591,7 +1593,7 @@ class _Feature:
             with importlib.resources.path("numpy.distutils.checks", "extra_%s.c" % chk.lower()) as test_path:
                 if not os.path.exists(test_path):
                     self.dist_fatal("extra check file does not exist", test_path)
-                is_supported = self.dist_test(test_path, flags + self.cc_flags["werror"])
+                is_supported = self.dist_test(str(test_path), flags + self.cc_flags["werror"])
                 if is_supported:
                     available.append(chk)
                 else:

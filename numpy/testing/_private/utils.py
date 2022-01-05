@@ -2245,6 +2245,8 @@ class suppress_warnings:
                      *args, use_warnmsg=None, **kwargs):
         for cat, _, pattern, mod, rec in (
                 self._suppressions + self._tmp_suppressions)[::-1]:
+            if mod and False == globals().get("__file__", False):
+                raise SkipTest() #warning filtering only works with files
             if (issubclass(category, cat) and
                     pattern.match(message.args[0]) is not None):
                 if mod is None:

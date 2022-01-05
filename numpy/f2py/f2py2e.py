@@ -18,6 +18,7 @@ import sys
 import os
 import pprint
 import re
+import importlib.resources
 
 from . import crackfortran
 from . import rules
@@ -421,51 +422,50 @@ def run_main(comline_list):
 
     """
     crackfortran.reset_global_f2py_vars()
-    f2pydir = os.path.dirname(os.path.abspath(cfuncs.__file__))
-    fobjhsrc = os.path.join(f2pydir, 'src', 'fortranobject.h')
-    fobjcsrc = os.path.join(f2pydir, 'src', 'fortranobject.c')
-    files, options = scaninputline(comline_list)
-    auxfuncs.options = options
-    capi_maps.load_f2cmap_file(options['f2cmap_file'])
-    postlist = callcrackfortran(files, options)
-    isusedby = {}
-    for plist in postlist:
-        if 'use' in plist:
-            for u in plist['use'].keys():
-                if u not in isusedby:
-                    isusedby[u] = []
-                isusedby[u].append(plist['name'])
-    for plist in postlist:
-        if plist['block'] == 'python module' and '__user__' in plist['name']:
-            if plist['name'] in isusedby:
-                # if not quiet:
+    with importlib.resources.path("numpy.f2py.src", "fortranobject.h") as fobjhsrc,
+         importlib.resources.path("numpy.f2py.src", "fortranobject.c") as fobjcsrc:
+        files, options = scaninputline(comline_list)
+        auxfuncs.options = options
+        capi_maps.load_f2cmap_file(options['f2cmap_file'])
+        postlist = callcrackfortran(files, options)
+        isusedby = {}
+        for plist in postlist:
+            if 'use' in plist:
+                for u in plist['use'].keys():
+                    if u not in isusedby:
+                        isusedby[u] = []
+                    isusedby[u].append(plist['name'])
+        for plist in postlist:
+            if plist['block'] == 'python module' and '__user__' in plist['name']:
+                if plist['name'] in isusedby:
+                    # if not quiet:
+                    outmess(
+                        f'Skipping Makefile build for module "{plist["name"]}" '
+                        'which is used by {}\n'.format(
+                            ','.join(f'"{s}"' for s in isusedby[plist['name']])))
+        if 'signsfile' in options:
+            if options['verbose'] > 1:
                 outmess(
-                    f'Skipping Makefile build for module "{plist["name"]}" '
-                    'which is used by {}\n'.format(
-                        ','.join(f'"{s}"' for s in isusedby[plist['name']])))
-    if 'signsfile' in options:
-        if options['verbose'] > 1:
-            outmess(
-                'Stopping. Edit the signature file and then run f2py on the signature file: ')
-            outmess('%s %s\n' %
-                    (os.path.basename(sys.argv[0]), options['signsfile']))
-        return
-    for plist in postlist:
-        if plist['block'] != 'python module':
-            if 'python module' not in options:
-                errmess(
-                    'Tip: If your original code is Fortran source then you must use -m option.\n')
-            raise TypeError('All blocks must be python module blocks but got %s' % (
-                repr(postlist[i]['block'])))
-    auxfuncs.debugoptions = options['debug']
-    f90mod_rules.options = options
-    auxfuncs.wrapfuncs = options['wrapfuncs']
+                    'Stopping. Edit the signature file and then run f2py on the signature file: ')
+                outmess('%s %s\n' %
+                        (os.path.basename(sys.argv[0]), options['signsfile']))
+            return
+        for plist in postlist:
+            if plist['block'] != 'python module':
+                if 'python module' not in options:
+                    errmess(
+                        'Tip: If your original code is Fortran source then you must use -m option.\n')
+                raise TypeError('All blocks must be python module blocks but got %s' % (
+                    repr(postlist[i]['block'])))
+        auxfuncs.debugoptions = options['debug']
+        f90mod_rules.options = options
+        auxfuncs.wrapfuncs = options['wrapfuncs']
 
-    ret = buildmodules(postlist)
+        ret = buildmodules(postlist)
 
-    for mn in ret.keys():
-        dict_append(ret[mn], {'csrc': fobjcsrc, 'h': fobjhsrc})
-    return ret
+        for mn in ret.keys():
+            dict_append(ret[mn], {'csrc': fobjcsrc, 'h': fobjhsrc})
+        return ret
 
 
 def filter_files(prefix, suffix, files, remove_prefix=None):
