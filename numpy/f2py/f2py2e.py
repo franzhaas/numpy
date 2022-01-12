@@ -422,8 +422,8 @@ def run_main(comline_list):
 
     """
     crackfortran.reset_global_f2py_vars()
-    with importlib.resources.path("numpy.f2py.src", "fortranobject.h") as fobjhsrc,
-         importlib.resources.path("numpy.f2py.src", "fortranobject.c") as fobjcsrc:
+    with (importlib.resources.path("numpy.f2py.src", "fortranobject.h") as fobjhsrc,
+          importlib.resources.path("numpy.f2py.src", "fortranobject.c") as fobjcsrc):
         files, options = scaninputline(comline_list)
         auxfuncs.options = options
         capi_maps.load_f2cmap_file(options['f2cmap_file'])
