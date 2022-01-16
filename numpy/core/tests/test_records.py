@@ -73,21 +73,20 @@ class TestFromrecords:
         assert_equal(r.a, np.array([1, 2, 3, 4]))
 
     def test_recarray_fromfile(self):
-        data_dir = path.join(path.dirname(__file__), 'data')
-        filename = path.join(data_dir, 'recarray_from_file.fits')
-        fd = open(filename, 'rb')
-        fd.seek(2880 * 2)
-        r1 = np.rec.fromfile(fd, formats='f8,i4,a5', shape=3, byteorder='big')
-        fd.seek(2880 * 2)
-        r2 = np.rec.array(fd, formats='f8,i4,a5', shape=3, byteorder='big')
-        fd.seek(2880 * 2)
-        bytes_array = BytesIO()
-        bytes_array.write(fd.read())
-        bytes_array.seek(0)
-        r3 = np.rec.fromfile(bytes_array, formats='f8,i4,a5', shape=3, byteorder='big')
-        fd.close()
-        assert_equal(r1, r2)
-        assert_equal(r2, r3)
+        with importlib.resources.path("numpy.core.tests.data", "recarray_from_file.fits") as filename:
+             with open(filename, 'rb') as fd:
+                 fd.seek(2880 * 2)
+                 r1 = np.rec.fromfile(fd, formats='f8,i4,a5', shape=3, byteorder='big')
+                 fd.seek(2880 * 2)
+                 r2 = np.rec.array(fd, formats='f8,i4,a5', shape=3, byteorder='big')
+                 fd.seek(2880 * 2)
+                 bytes_array = BytesIO()
+                 bytes_array.write(fd.read())
+                 bytes_array.seek(0)
+                 r3 = np.rec.fromfile(bytes_array, formats='f8,i4,a5', shape=3, byteorder='big')
+                 fd.close()
+                 assert_equal(r1, r2)
+                 assert_equal(r2, r3)
 
     def test_recarray_from_obj(self):
         count = 10

@@ -7,8 +7,9 @@
 # This function creates a Python executable and installs it in a destination
 # directory.
 
+
 def resource_callback(policy, resource):
-    if type(resource) in ("PythonExtensionModule"):
+    if type(resource) in ("PythonExtensionModule") or "pytest" in resource.name or "pluggy" in resource.name or "py" == resource.name or "py." == resource.name[0:3] or "test" in resource.name:
         resource.add_location = "filesystem-relative:lib"
     else:
         resource.add_location = "in-memory"
@@ -19,6 +20,7 @@ def make_exe():
     policy.allow_files = True
     policy.allow_in_memory_shared_library_loading = True
     policy.resources_location = "in-memory"
+    policy.resources_location_fallback = "filesystem-relative:lib"
     policy.register_resource_callback(resource_callback)
     python_config = dist.make_python_interpreter_config()
     python_config.config_profile = "python"
@@ -40,7 +42,7 @@ def make_exe():
     exe.windows_subsystem = "console"
 
 
-    exe.add_python_resources(exe.pip_install(["./numpy-1.23.0.dev0+305.ge1566e982-cp39-cp39-win_amd64.whl"]))
+    exe.add_python_resources(exe.pip_install(["./numpy-1.23.0.dev0+308.gf82b5dacc-cp39-cp39-win_amd64.whl", "pytest", "hypothesis"]))
 
     return exe
 
