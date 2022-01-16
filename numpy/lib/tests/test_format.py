@@ -279,6 +279,7 @@ import os
 import warnings
 import pytest
 from io import BytesIO
+import importlib.resources
 
 import numpy as np
 from numpy.testing import (
@@ -526,8 +527,8 @@ def test_load_padded_dtype(tmpdir, dt):
 
 def test_python2_python3_interoperability():
     fname = 'win64python2.npy'
-    path = os.path.join(os.path.dirname(__file__), 'data', fname)
-    data = np.load(path)
+    with importlib.resources.path("numpy.lib.tests.data", "win64python2.npy") as path:
+        data = np.load(path)
     assert_array_equal(data, np.ones(2))
 
 def test_pickle_python2_python3():
@@ -578,18 +579,16 @@ def test_pickle_python2_python3():
 
 
 def test_pickle_disallow(tmpdir):
-    data_dir = os.path.join(os.path.dirname(__file__), 'data')
+    with importlib.resources.path("numpy.lib.tests.data", "py2-objarr.npy") as path:
+        assert_raises(ValueError, np.load, path,
+                      allow_pickle=False, encoding='latin1')
 
-    path = os.path.join(data_dir, 'py2-objarr.npy')
-    assert_raises(ValueError, np.load, path,
-                  allow_pickle=False, encoding='latin1')
+    with importlib.resources.path("numpy.lib.tests.data", "py2-objarr.npz") as path:
+        with np.load(path, allow_pickle=False, encoding='latin1') as f:
+            assert_raises(ValueError, f.__getitem__, 'x')
 
-    path = os.path.join(data_dir, 'py2-objarr.npz')
-    with np.load(path, allow_pickle=False, encoding='latin1') as f:
-        assert_raises(ValueError, f.__getitem__, 'x')
-
-    path = os.path.join(tmpdir, 'pickle-disabled.npy')
-    assert_raises(ValueError, np.save, path, np.array([None], dtype=object),
+    with importlib.resources.path("numpy.lib.tests.data", "pickle-disabled.npy") as path:
+        assert_raises(ValueError, np.save, path, np.array([None], dtype=object),
                   allow_pickle=False)
 
 @pytest.mark.parametrize('dt', [
@@ -957,4 +956,3 @@ def test_metadata_dtype(dt, fail):
         assert_array_equal(arr, arr2)
         assert _has_metadata(arr.dtype)
         assert not _has_metadata(arr2.dtype)
-
