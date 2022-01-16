@@ -7,20 +7,20 @@ import numpy as np
 from numpy.testing import assert_
 
 FILES = [
-    ("py.typed"),
-    ("__init__.pyi"),
-    ("ctypeslib.pyi"),
-    ("core" , "__init__.pyi"),
-    ("distutils" , "__init__.pyi"),
-    ("f2py" , "__init__.pyi"),
-    ("fft" , "__init__.pyi"),
-    ("lib" , "__init__.pyi"),
-    ("linalg" , "__init__.pyi"),
-    ("ma" , "__init__.pyi"),
-    ("matrixlib" , "__init__.pyi"),
-    ("polynomial" , "__init__.pyi"),
-    ("random" , "__init__.pyi"),
-    ("testing" , "__init__.pyi"),
+    ["py.typed"],
+    ["__init__.pyi"],
+    ["ctypeslib.pyi"],
+    ["core" , "__init__.pyi"],
+    ["distutils" , "__init__.pyi"],
+    ["f2py" , "__init__.pyi"],
+    ["fft" , "__init__.pyi"],
+    ["lib" , "__init__.pyi"],
+    ["linalg" , "__init__.pyi"],
+    ["ma" , "__init__.pyi"],
+    ["matrixlib" , "__init__.pyi"],
+    ["polynomial" , "__init__.pyi"],
+    ["random" , "__init__.pyi"],
+    ["testing" , "__init__.pyi"],
 ]
 
 
